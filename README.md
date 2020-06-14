@@ -1,0 +1,2 @@
+# Hylex
+Multipurpose Discord Bot
