@@ -17,7 +17,7 @@ class General(commands.Cog):
     #Events
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.client.change_presence(status=discord.Status.online, activity=discord.Game('Bot Stuff | ~help'))
+        await self.client.change_presence(status=discord.Status.online, activity=discord.Game('Bot Stuff | -help'))
         print('We have logged in as {0.user}'.format(self.client))
 
     
@@ -36,7 +36,7 @@ class General(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild, ctx):
         print(f'Hylex has joined {guild}!')
-        await ctx.send('Hello! Hylex uses Tildes ```~``` as command prefixes, type ~help for command help and syntax.')
+        await ctx.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type ~help for command help and syntax.')
 
 
 
