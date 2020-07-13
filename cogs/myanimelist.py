@@ -1,4 +1,7 @@
 import discord
+import requests
+import asyncio
+from bs4 import BeautifulSoup
 from discord.ext import commands
 from jikanpy import Jikan
 from datetime import date
@@ -11,10 +14,11 @@ class MyAnimeList(commands.Cog):
 
     # Commands
     @commands.command()
+    @commands.guild_only()
     async def anime(self, ctx, *, title):
         """ Displays info about given anime. Use optional parameter <episode=> to search for an episode.
 
-        Usage: -anime <anime name> (episode=#)
+        Usage: -anime <name> (episode=#)
         """
 
         if 'season' in title:
@@ -23,40 +27,334 @@ class MyAnimeList(commands.Cog):
         if 'episode=' in title:
             return await self._animeEp(ctx, title)
         
-        jikan = Jikan()
-        result = jikan.search(search_type='anime', query=title)['results'][0]
-        mal_id = result['mal_id']
-        full_result = jikan.anime(mal_id)
-        authour = ctx.message.author
+
+        url = 'https://graphql.anilist.co'
+        variables = {'search': title}
+        query = '''
+            query ($search: String) {
+            Media(search: $search, type: ANIME) {
+                title {
+                    english
+                    romaji
+                }
+                siteUrl
+                status
+                coverImage {
+                    large
+                }
+                description
+                startDate {
+                    year
+                    month
+                    day
+                }
+                endDate {
+                    year
+                    month
+                    day
+                }
+                averageScore
+                genres
+                externalLinks {
+                    site
+                    url
+                }
+                }
+            }
+            '''
+        response = requests.post(url, json={'query': query, 'variables': variables})
+
+        try:
+            decoded = response.content.decode('utf-8')
+            replaced = decoded.replace('null', 'None')
+            full_dict = eval(replaced)
+        except:
+            return await ctx.send(f'No results found for "{title}."')
+
+        linkvalues, authour = '', ctx.message.author
+        media = full_dict['data']['Media']
+        desc = 'No description available.'
+        if media['description']:
+            tempdesc = BeautifulSoup(media['description'], features="html.parser")
+            desc = tempdesc.get_text()[:200] + '...'
+        platforms = ['Netflix', 'Hulu', 'AnimeLab', 'Crunchyroll', 'Funimation', 'Viz', 'VRV', 'Tubi TV']
+        animeTitle = media['title']['english']
+        if not animeTitle:
+            animeTitle = media['title']['romaji']
+
+        embed = discord.Embed(
+            title = animeTitle,
+            url = media['siteUrl'].replace('\\', ''),
+            description = desc,
+            colour = discord.Colour.blurple(),
+            type = 'rich')
+            
+        for link in media['externalLinks']:
+            if link['site'] in platforms:
+                site = link['site']
+                streamUrl = link['url'].replace('\\', '')
+                linkvalues += f'[{site}]({streamUrl}) '
+        
+        if None in media['startDate'].values():
+            started, ended = '?', '?'
+        elif None in media['endDate'].values():
+            started = date(media['startDate']['year'], media['startDate']['month'], media['startDate']['day']).strftime("%B %d, %Y")
+            ended ='?'
+        else:
+            started = date(media['startDate']['year'], media['startDate']['month'], media['startDate']['day']).strftime("%B %d, %Y")
+            ended = date(media['endDate']['year'], media['endDate']['month'], media['endDate']['day']).strftime("%B %d, %Y")
+        
+        embed.set_author(name='Anime Lookup', url="https://github.com/isham-b/Hylex", icon_url=authour.avatar_url)
+        embed.set_thumbnail(url=media['coverImage']['large'].replace('\\', ''))
+        embed.add_field(name='Premiered', value=f'{started} to {ended}', inline=True)
+        if media['averageScore']:
+            embed.add_field(name='Score', value=media['averageScore'], inline=True)
+        if media['genres']:
+            embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
+        if len(linkvalues) > 0:
+            embed.add_field(name='Watch', value=linkvalues)
+        embed.set_footer(text='Not the right anime? Use -animesearch <anime> for a list of results.')
+
+        await ctx.send(embed=embed)
+
+    
+
+
+    @commands.command()
+    @commands.guild_only()
+    async def manga(self, ctx, *, title):
+        """ Displays info about given manga.
+
+        Usage: -manga <manga name>
+        """
+        url = 'https://graphql.anilist.co'
+        variables = {'search': title}
+        query = '''
+            query ($search: String) {
+            Media(search: $search, type: MANGA) {
+                title {
+                    english
+                    romaji
+                }
+                siteUrl
+                status
+                coverImage {
+                    large
+                }
+                description
+                startDate {
+                    year
+                    month
+                    day
+                }
+                endDate {
+                    year
+                    month
+                    day
+                }
+                averageScore
+                genres
+                externalLinks {
+                    site
+                    url
+                }
+                }
+            }
+            '''
+        response = requests.post(url, json={'query': query, 'variables': variables})
+        
+        try:
+            decoded = response.content.decode('utf-8')
+            replaced = decoded.replace('null', 'None')
+            full_dict = eval(replaced)
+        except:
+            return await ctx.send(f'No results found for "{title}."')
+
+        linkvalues, authour = '', ctx.message.author
+        media = full_dict['data']['Media']
+        desc = 'No description available.'
+        if media['description']:
+            tempdesc = BeautifulSoup(media['description'], features="html.parser")
+            desc = tempdesc.get_text()[:200] + '...'
+        mangaTitle = media['title']['english']
+        if not mangaTitle:
+            mangaTitle = media['title']['romaji']
 
 
         embed = discord.Embed(
-            title = result['title'],
-            url = result['url'],
-            description = result['synopsis'],
-            colour = discord.Colour.blurple(),
-            type = 'rich'
-        )
+            title = mangaTitle,
+            url = media['siteUrl'].replace('\\', ''),
+            description = desc,
+            colour = discord.Colour.purple(),
+            type = 'rich')
 
-        embed.set_author(name='Anime Search', url="https://github.com/isham-b/Hylex", icon_url=authour.avatar_url)
-        embed.set_thumbnail(url=result['image_url'])
+        for link in media['externalLinks']:
+            site = link['site']
+            streamUrl = link['url'].replace('\\', '')
+            linkvalues += f'[{site}]({streamUrl}) '
 
-        if full_result['type'] == 'Movie' or full_result['type'] == 'Special':
-            embed.add_field(name='Duration', value=full_result['duration'])
+        if None in media['startDate'].values():
+            started, ended = '?', '?'
+        elif None in media['endDate'].values():
+            started = date(media['startDate']['year'], media['startDate']['month'], media['startDate']['day']).strftime("%B %d, %Y")
+            ended ='?'
+        else:
+            started = date(media['startDate']['year'], media['startDate']['month'], media['startDate']['day']).strftime("%B %d, %Y")
+            ended = date(media['endDate']['year'], media['endDate']['month'], media['endDate']['day']).strftime("%B %d, %Y")
 
-        if full_result['type'] == 'TV':
-            if result['episodes']:
-                embed.add_field(name='Episodes', value=result['episodes'], inline=True)
-            else:
-                embed.add_field(name='Episodes', value=self._num_episodes(mal_id), inline=True)
-            
 
-        embed.add_field(name='Premiered', value=full_result['aired']['string'], inline=True)
-        embed.add_field(name='Score', value=result['score'], inline=True)
-        embed.add_field(name='Genres', value= ', '.join([genre['name'] for genre in full_result['genres']]), inline=False)
-        
+        embed.set_author(name='Manga Search', url="https://github.com/isham-b/Hylex", icon_url=authour.avatar_url)
+        embed.set_thumbnail(url=media['coverImage']['large'].replace('\\', ''))
+        embed.add_field(name='Released', value=f'{started} to {ended}', inline=True)
+        if media['averageScore']:
+            embed.add_field(name='Score', value=media['averageScore'], inline=True)
+        if media['genres']:
+            embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
+        if len(linkvalues) > 0:
+            embed.add_field(name='Links', value=linkvalues)
+        embed.set_footer(text='Not the right manga? Use -mangasearch <manga> for a list of results.')
+
         await ctx.send(embed=embed)
+        
 
+    @commands.command()
+    @commands.guild_only()
+    async def animesearch(self, ctx, *, title):
+        url = 'https://graphql.anilist.co'
+        variables = {'search': title}
+        query = '''
+        query ($search: String) {
+            Page(perPage: 10) {
+                media(search: $search, type: ANIME) {
+                    id
+                    title {
+                        english
+                        romaji
+                    }
+                    format
+                    startDate {
+                        year
+                        month
+                        day
+                    }
+                }
+            }
+            }
+        '''
+        response = requests.post(url, json={'query': query, 'variables': variables})
+        authour = ctx.message.author
+        finalstr = ''
+
+        try:
+            decoded = response.content.decode('utf-8')
+            replaced = decoded.replace('null', 'None')
+            full_dict = eval(replaced)
+        except:
+            return await ctx.send(f'Error: No results found for "{title}."')
+
+        page = full_dict['data']['Page']['media']
+        if len(page) == 0:
+            return await ctx.send(f'Error: No results found for "{title}"')
+
+        i = 1
+        for entry in page:
+            # We have logged 5 entries
+            if i == 6:
+                break
+            yr = str(entry['startDate']['year'])
+            mediatype = entry['format']
+            temptitle = entry['title']['english']
+            if not temptitle:
+                temptitle = entry['title']['romaji']
+            if yr and mediatype and temptitle:
+                finalstr += f'{i}. ' + temptitle + f' ({yr} {mediatype})\n'
+                i += 1
+            
+        await ctx.send("**Please select an anime by typing a number from 1-5, or type 'cancel' to stop the search:**\n" + finalstr)
+
+        try:
+            msg = await self.client.wait_for('message', timeout=45.0, check=lambda message: (message.content.split()[0].isnumeric() or message.content.lower() == 'cancel') and message.author == authour)
+            if msg.content.lower == 'cancel':
+                return
+            number = int(msg.content.split()[0]) - 1
+            try:
+                name = page[number]['title']['english']
+            except KeyError:
+                return await ctx.send('Error: Cannot find anime with that number.')
+            if name:
+                return await self.anime(ctx, title=name)
+        except asyncio.TimeoutError:
+            print(f'Animesearch timed out for {authour}')
+
+
+
+
+    @commands.command()
+    @commands.guild_only()
+    async def mangasearch(self, ctx, *, title):
+        url = 'https://graphql.anilist.co'
+        variables = {'search': title}
+        query = '''
+        query ($search: String) {
+            Page(perPage: 10) {
+                media(search: $search, type: MANGA) {
+                    id
+                    title {
+                        english
+                        romaji
+                    }
+                    format
+                    startDate {
+                        year
+                        month
+                        day
+                    }
+                }
+            }
+            }
+        '''
+        response = requests.post(url, json={'query': query, 'variables': variables})
+        authour = ctx.message.author
+        finalstr = ''
+
+        try:
+            decoded = response.content.decode('utf-8')
+            replaced = decoded.replace('null', 'None')
+            full_dict = eval(replaced)
+        except:
+            return await ctx.send(f'Error: No results found for "{title}."')
+
+        page = full_dict['data']['Page']['media']
+        if len(page) == 0:
+            return await ctx.send(f'Error: No results found for "{title}"')
+        
+        i = 1
+        for entry in page:
+            # We have logged 5 entries
+            if i == 6:
+                break
+            yr = str(entry['startDate']['year'])
+            mediatype = entry['format']
+            temptitle = entry['title']['english']
+            if not temptitle:
+                temptitle = entry['title']['romaji']
+            if yr and mediatype and temptitle:
+                finalstr += f'{i}. ' + temptitle + f' ({yr} {mediatype})\n'
+                i += 1
+
+        await ctx.send("**Please select a manga by typing a number from 1-5, or type 'cancel' to stop the search:**\n" + finalstr)
+
+            
+        try:
+            msg = await self.client.wait_for('message', timeout=45.0, check=lambda message: (message.content.split()[0].isnumeric() or message.content.lower() == 'cancel') and message.author == authour)
+            if msg.content.lower == 'cancel':
+                return
+            number = int(msg.content.split()[0]) - 1
+            name = page[number]['title']['english']
+            if name:
+                return await self.manga(ctx, title=name)
+        except asyncio.TimeoutError:
+            print(f'Animesearch timed out for {authour}')
     
 
 
@@ -64,7 +362,18 @@ class MyAnimeList(commands.Cog):
 
 
 
+
+
+
+
+
+
+
+
+
+
     # Helper Functions
+
     def _num_episodes(self, mal_id):
         jikan = Jikan()
         last_page_num = jikan.anime(int(mal_id), extension='episodes')['episodes_last_page']
@@ -77,9 +386,12 @@ class MyAnimeList(commands.Cog):
 
 
 
+
     async def _animeEp(self, ctx, title):
         jikan = Jikan()
         name, ep_num = title.split('episode=')
+        if not ep_num.isnumeric():
+            return await ctx.send("Error: `episode=` must be a number!  ")
         result = jikan.search(search_type='anime', query=name)['results'][0]
         mal_id = result['mal_id']
         anime_title = result['title']
@@ -92,7 +404,6 @@ class MyAnimeList(commands.Cog):
         page = int(ep_num) // 100
         if not (int(ep_num) % 100 == 0):
             page += 1
-        print(page)
         episodes = jikan.anime(mal_id, extension='episodes', page=page)
         
         for dictionary in episodes['episodes']:
@@ -123,11 +434,43 @@ class MyAnimeList(commands.Cog):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # Errors
     @anime.error
-    async def animeEp_handler(self, ctx, error):
+    async def anime_handler(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Invalid syntax: Use `~animeEp <anime> episode=<#>`")
+            await ctx.send("Invalid syntax: Use `-anime <name> episode=<#>`, or -animesearch <name> to search for an anime. ")
+
+    @manga.error
+    async def manga_handler(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Invalid syntax: Use `-manga <name>`, or -mangasearch <name> to search for a manga.")
+
+    @animesearch.error
+    async def animesearch_handler(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Invalid syntax: Use `-animesearch <name>`")
+
+    @mangasearch.error
+    async def mangasearch_handler(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Invalid syntax: Use `-mangasearch <name>`")
+    
+
 
 
 
