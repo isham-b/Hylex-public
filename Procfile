@@ -1,1 +1,1 @@
-web: python Hylex.py
+worker: python Hylex.py
