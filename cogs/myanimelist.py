@@ -93,7 +93,7 @@ class AnimeManga(commands.Cog):
             if link['site'] in platforms:
                 site = link['site']
                 streamUrl = link['url'].replace('\\', '')
-                linkvalues += f'[{site}]({streamUrl}) '
+                linkvalues += f'[{site}]({streamUrl}) | '
         
         if None in media['startDate'].values():
             started, ended = '?', '?'
@@ -192,7 +192,7 @@ class AnimeManga(commands.Cog):
         for link in media['externalLinks']:
             site = link['site']
             streamUrl = link['url'].replace('\\', '')
-            linkvalues += f'[{site}]({streamUrl}) '
+            linkvalues += f'[{site}]({streamUrl}) | '
 
         if None in media['startDate'].values():
             started, ended = '?', '?'
