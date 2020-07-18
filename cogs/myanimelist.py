@@ -6,7 +6,7 @@ from discord.ext import commands
 from jikanpy import Jikan
 from datetime import date
 
-class MyAnimeList(commands.Cog):
+class AnimeManga(commands.Cog):
 
     def __init__(self, client):
         self.client = client
@@ -16,11 +16,8 @@ class MyAnimeList(commands.Cog):
     @commands.command()
     @commands.guild_only()
     async def anime(self, ctx, *, title):
-        """ Displays info about given anime. Use optional parameter <episode=> to search for an episode.
-
-        Usage: -anime <name> (episode=#)
+        """ Displays info about given anime. Add 'episode=' to search for an episode.\nUsage: -anime <title> (episode=#)
         """
-
         if 'season' in title:
             title = title.replace('season', '')
 
@@ -69,7 +66,10 @@ class MyAnimeList(commands.Cog):
             replaced = decoded.replace('null', 'None')
             full_dict = eval(replaced)
         except:
-            return await ctx.send(f'No results found for "{title}."')
+            return await ctx.send(f'**Error**: No results found for "{title}", try using `-animesearch <title>` for a list of results.')
+
+        if 'errors' in full_dict:
+            return await ctx.send(f'**Error**: No results found for "{title}", try using `-animesearch <title>` for a list of results.')
 
         linkvalues, authour = '', ctx.message.author
         media = full_dict['data']['Media']
@@ -123,9 +123,7 @@ class MyAnimeList(commands.Cog):
     @commands.command()
     @commands.guild_only()
     async def manga(self, ctx, *, title):
-        """ Displays info about given manga.
-
-        Usage: -manga <manga name>
+        """ Displays info about given manga.\nUsage: -manga <title>
         """
         url = 'https://graphql.anilist.co'
         variables = {'search': title}
@@ -168,7 +166,10 @@ class MyAnimeList(commands.Cog):
             replaced = decoded.replace('null', 'None')
             full_dict = eval(replaced)
         except:
-            return await ctx.send(f'No results found for "{title}."')
+            return await ctx.send(f'**Error**: No results found for "{title}."')
+
+        if 'error' in full_dict:
+            return await ctx.send(f'**Error**: No results found for "{title}."')
 
         linkvalues, authour = '', ctx.message.author
         media = full_dict['data']['Media']
@@ -220,6 +221,9 @@ class MyAnimeList(commands.Cog):
     @commands.command()
     @commands.guild_only()
     async def animesearch(self, ctx, *, title):
+        '''
+        Searches for an anime title.\n Usage: -animesearch <title>
+        '''
         url = 'https://graphql.anilist.co'
         variables = {'search': title}
         query = '''
@@ -250,11 +254,11 @@ class MyAnimeList(commands.Cog):
             replaced = decoded.replace('null', 'None')
             full_dict = eval(replaced)
         except:
-            return await ctx.send(f'Error: No results found for "{title}."')
+            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to use the correct English/Romaji title.')
 
         page = full_dict['data']['Page']['media']
         if len(page) == 0:
-            return await ctx.send(f'Error: No results found for "{title}"')
+            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to use the correct English/Romaji title.')
 
         i = 1
         for entry in page:
@@ -280,7 +284,7 @@ class MyAnimeList(commands.Cog):
             try:
                 name = page[number]['title']['english']
             except KeyError:
-                return await ctx.send('Error: Cannot find anime with that number.')
+                return await ctx.send('**Error**: Cannot find anime with that number.')
             if name:
                 return await self.anime(ctx, title=name)
         except asyncio.TimeoutError:
@@ -292,6 +296,9 @@ class MyAnimeList(commands.Cog):
     @commands.command()
     @commands.guild_only()
     async def mangasearch(self, ctx, *, title):
+        '''
+        Searches for a manga title.\n Usage: -mangasearch <title>
+        '''
         url = 'https://graphql.anilist.co'
         variables = {'search': title}
         query = '''
@@ -322,12 +329,12 @@ class MyAnimeList(commands.Cog):
             replaced = decoded.replace('null', 'None')
             full_dict = eval(replaced)
         except:
-            return await ctx.send(f'Error: No results found for "{title}."')
+            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to use the correct English/Romaji title.')
 
+        if 'error' in full_dict:
+            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to use the correct English/Romaji title.')
+       
         page = full_dict['data']['Page']['media']
-        if len(page) == 0:
-            return await ctx.send(f'Error: No results found for "{title}"')
-        
         i = 1
         for entry in page:
             # We have logged 5 entries
@@ -391,7 +398,7 @@ class MyAnimeList(commands.Cog):
         jikan = Jikan()
         name, ep_num = title.split('episode=')
         if not ep_num.isnumeric():
-            return await ctx.send("Error: `episode=` must be a number!  ")
+            return await ctx.send("**Error**: `episode=` must be a number!  ")
         result = jikan.search(search_type='anime', query=name)['results'][0]
         mal_id = result['mal_id']
         anime_title = result['title']
@@ -399,7 +406,7 @@ class MyAnimeList(commands.Cog):
         
 
         if int(self._num_episodes(mal_id)) < int(ep_num):
-            return await ctx.send(f'Error: \"{anime_title}\" has no episode {ep_num}!')
+            return await ctx.send(f'**Error**: Unable to find Episode {ep_num} for {anime_title}.')
 
         page = int(ep_num) // 100
         if not (int(ep_num) % 100 == 0):
@@ -430,7 +437,7 @@ class MyAnimeList(commands.Cog):
 
                 return await ctx.send(embed=embed)
 
-        await ctx.send(f'Unable to find Episode {ep_num} for {anime_title}.')
+        await ctx.send(f'**Error**: Unable to find Episode {ep_num} for {anime_title}.')
 
 
 
@@ -475,4 +482,4 @@ class MyAnimeList(commands.Cog):
 
 
 def setup(client):
-    client.add_cog(MyAnimeList(client))        
+    client.add_cog(AnimeManga(client))        
