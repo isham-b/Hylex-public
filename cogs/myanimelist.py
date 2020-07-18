@@ -71,7 +71,7 @@ class AnimeManga(commands.Cog):
         if 'errors' in full_dict:
             return await ctx.send(f'**Error**: No results found for "{title}", try using `-animesearch <title>` for a list of results.')
 
-        linkvalues, authour = '', ctx.message.author
+        linkvalues, authour = '| ', ctx.message.author
         media = full_dict['data']['Media']
         desc = 'No description available.'
         if media['description']:
@@ -171,7 +171,7 @@ class AnimeManga(commands.Cog):
         if 'error' in full_dict:
             return await ctx.send(f'**Error**: No results found for "{title}."')
 
-        linkvalues, authour = '', ctx.message.author
+        linkvalues, authour = '| ', ctx.message.author
         media = full_dict['data']['Media']
         desc = 'No description available.'
         if media['description']:
