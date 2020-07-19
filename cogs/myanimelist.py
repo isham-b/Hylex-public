@@ -422,7 +422,7 @@ class AnimeManga(commands.Cog):
                     colour = discord.Colour.blue(),
                     type = 'rich'
                                     )
-                
+                print('test3')
                 premiere, filler = "Unknown", "Unknown"
                 if dictionary['aired'] is not None:
                     d = date.fromisoformat(dictionary['aired'][:10])
@@ -434,7 +434,7 @@ class AnimeManga(commands.Cog):
                 embed.set_thumbnail(url=result['image_url'])
                 embed.add_field(name='Premiered', value=premiere, inline=True)
                 embed.add_field(name='Filler', value=filler)
-                print('test3')
+                
                 return await ctx.send(embed=embed)
 
         await ctx.send(f'**Error**: Unable to find Episode {ep_num} for {anime_title}.')
