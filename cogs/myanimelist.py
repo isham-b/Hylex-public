@@ -429,7 +429,7 @@ class AnimeManga(commands.Cog):
                     premiere = d.strftime("%B %d, %Y")
                 if dictionary['filler'] is not None:
                     filler = ['Yes' if dictionary['filler'] else 'No'][0]
-                print(premiere, filler)
+
                 embed.set_author(name='Episode Search', url="https://github.com/isham-b/Hylex", icon_url=authour.avatar_url)
                 embed.set_thumbnail(url=result['image_url'])
                 embed.add_field(name='Premiered', value=premiere, inline=True)
