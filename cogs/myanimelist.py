@@ -115,7 +115,7 @@ class AnimeManga(commands.Cog):
         embed.add_field(name='Premiered', value=f'{started} to {ended}', inline=True)
         if media['averageScore']:
             embed.add_field(name='Score', value=media['averageScore'], inline=True)
-        if media['episodes']:
+        if tempep:
             embed.add_field(name='Episodes', value=tempep, inline=True)
         if media['genres']:
             embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
