@@ -1,6 +1,5 @@
 import discord
 import random
-import commands_help
 from discord.ext import commands
 
 
@@ -17,7 +16,7 @@ class General(commands.Cog):
     #Events
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.client.change_presence(status=discord.Status.online, activity=discord.Game('Bot Stuff | -help | Message LlamaLegacy#2576 for help'))
+        await self.client.change_presence(status=discord.Status.online, activity=discord.Game('Bot Stuff | -help'))
         print('We have logged in as {0.user}'.format(self.client))
 
     
@@ -37,7 +36,6 @@ class General(commands.Cog):
     async def on_guild_join(self, guild: discord.Guild, ctx):
         print(f'Hylex has joined {guild}!')
         await ctx.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type -help for command help and syntax.')
-
 
 
 
@@ -78,7 +76,7 @@ class General(commands.Cog):
             if not cog:
                 """Cog listing"""
                 halp=discord.Embed(title='Command Help',
-                                description='Use `-help <category>` to find out more about them!\nMake sure to spell it right (including captials)!')
+                                description='Use `-help <category>` (Case Sensitive) to find out more about them!\nMessage **LlamaLegacy#2576** for additional help!')
                 cogs_desc = ''
                 for x in self.client.cogs:
                     if x != 'CommandErrorHandler':
