@@ -396,6 +396,7 @@ class AnimeManga(commands.Cog):
 
     async def _animeEp(self, ctx, title):
         jikan = Jikan()
+        print('test1')
         name, ep_num = title.split('episode=')
         if not ep_num.isnumeric():
             return await ctx.send("**Error**: `episode=` must be a number!  ")
@@ -403,6 +404,7 @@ class AnimeManga(commands.Cog):
         mal_id = result['mal_id']
         anime_title = result['title']
         authour = ctx.message.author
+        print('test2')
         
 
         if int(self._num_episodes(mal_id)) < int(ep_num):
