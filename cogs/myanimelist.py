@@ -1,6 +1,6 @@
 import discord
 import requests
-from asyncio import TimeoutError
+import asyncio
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from jikanpy import Jikan
@@ -71,7 +71,7 @@ class AnimeManga(commands.Cog):
         if 'errors' in full_dict:
             return await ctx.send(f'**Error**: No results found for "{title}", try using `-animesearch <title>` for a list of results.')
 
-        linkvalues, authour = '| ', ctx.message.author
+        linkvalues, authour = '', ctx.message.author
         media = full_dict['data']['Media']
         desc = 'No description available.'
         if media['description']:
@@ -93,7 +93,7 @@ class AnimeManga(commands.Cog):
             if link['site'] in platforms:
                 site = link['site']
                 streamUrl = link['url'].replace('\\', '')
-                linkvalues += f'[{site}]({streamUrl}) | '
+                linkvalues += f'[{site}]({streamUrl}) '
         
         if None in media['startDate'].values():
             started, ended = '?', '?'
@@ -171,7 +171,7 @@ class AnimeManga(commands.Cog):
         if 'error' in full_dict:
             return await ctx.send(f'**Error**: No results found for "{title}."')
 
-        linkvalues, authour = '| ', ctx.message.author
+        linkvalues, authour = '', ctx.message.author
         media = full_dict['data']['Media']
         desc = 'No description available.'
         if media['description']:
@@ -192,7 +192,7 @@ class AnimeManga(commands.Cog):
         for link in media['externalLinks']:
             site = link['site']
             streamUrl = link['url'].replace('\\', '')
-            linkvalues += f'[{site}]({streamUrl}) | '
+            linkvalues += f'[{site}]({streamUrl}) '
 
         if None in media['startDate'].values():
             started, ended = '?', '?'
@@ -287,7 +287,7 @@ class AnimeManga(commands.Cog):
                 return await ctx.send('**Error**: Cannot find anime with that number.')
             if name:
                 return await self.anime(ctx, title=name)
-        except TimeoutError:
+        except asyncio.TimeoutError:
             print(f'Animesearch timed out for {authour}')
 
 
@@ -360,7 +360,7 @@ class AnimeManga(commands.Cog):
             name = page[number]['title']['english']
             if name:
                 return await self.manga(ctx, title=name)
-        except TimeoutError:
+        except asyncio.TimeoutError:
             print(f'Animesearch timed out for {authour}')
     
 
@@ -434,7 +434,7 @@ class AnimeManga(commands.Cog):
                 embed.set_thumbnail(url=result['image_url'])
                 embed.add_field(name='Premiered', value=premiere, inline=True)
                 embed.add_field(name='Filler', value=filler)
-                
+
                 return await ctx.send(embed=embed)
 
         await ctx.send(f'**Error**: Unable to find Episode {ep_num} for {anime_title}.')
