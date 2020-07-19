@@ -36,6 +36,7 @@ class AnimeManga(commands.Cog):
                 }
                 siteUrl
                 status
+                episodes
                 coverImage {
                     large
                 }
@@ -51,6 +52,7 @@ class AnimeManga(commands.Cog):
                     day
                 }
                 averageScore
+                format
                 genres
                 externalLinks {
                     site
@@ -73,7 +75,7 @@ class AnimeManga(commands.Cog):
 
         linkvalues, authour = '| ', ctx.message.author
         media = full_dict['data']['Media']
-        desc = 'No description available.'
+        desc, tempep = 'No description available.', None
         if media['description']:
             tempdesc = BeautifulSoup(media['description'], features="html.parser")
             desc = tempdesc.get_text()[:200] + '...'
@@ -81,6 +83,8 @@ class AnimeManga(commands.Cog):
         animeTitle = media['title']['english']
         if not animeTitle:
             animeTitle = media['title']['romaji']
+        if media['format'] == 'TV':
+            tempep = media['episodes']
 
         embed = discord.Embed(
             title = animeTitle,
@@ -90,11 +94,13 @@ class AnimeManga(commands.Cog):
             type = 'rich')
             
         for link in media['externalLinks']:
+            if link == media['externalLinks'][0]:
+                linkvalues = '|'
             if link['site'] in platforms:
                 site = link['site']
                 streamUrl = link['url'].replace('\\', '')
-                linkvalues += f'[{site}]({streamUrl}) | '
-        
+                linkvalues += f' [{site}]({streamUrl}) | '
+
         if None in media['startDate'].values():
             started, ended = '?', '?'
         elif None in media['endDate'].values():
@@ -109,6 +115,8 @@ class AnimeManga(commands.Cog):
         embed.add_field(name='Premiered', value=f'{started} to {ended}', inline=True)
         if media['averageScore']:
             embed.add_field(name='Score', value=media['averageScore'], inline=True)
+        if media['episodes']:
+            embed.add_field(name='Episodes', value=tempep, inline=True)
         if media['genres']:
             embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
         if len(linkvalues) > 0:
