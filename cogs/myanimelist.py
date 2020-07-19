@@ -1,10 +1,11 @@
 import discord
 import requests
-import asyncio
+from asyncio import TimeoutError
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from jikanpy import Jikan
 from datetime import date
+
 
 class AnimeManga(commands.Cog):
 
@@ -36,6 +37,7 @@ class AnimeManga(commands.Cog):
                 }
                 siteUrl
                 status
+                episodes
                 coverImage {
                     large
                 }
@@ -71,7 +73,7 @@ class AnimeManga(commands.Cog):
         if 'errors' in full_dict:
             return await ctx.send(f'**Error**: No results found for "{title}", try using `-animesearch <title>` for a list of results.')
 
-        linkvalues, authour = '', ctx.message.author
+        linkvalues, authour = '| ', ctx.message.author
         media = full_dict['data']['Media']
         desc = 'No description available.'
         if media['description']:
@@ -90,11 +92,13 @@ class AnimeManga(commands.Cog):
             type = 'rich')
             
         for link in media['externalLinks']:
+            if link == media['externalLinks'][0]:
+                linkvalues = '|'
             if link['site'] in platforms:
                 site = link['site']
                 streamUrl = link['url'].replace('\\', '')
-                linkvalues += f'[{site}]({streamUrl}) '
-        
+                linkvalues += f' [{site}]({streamUrl}) | '
+
         if None in media['startDate'].values():
             started, ended = '?', '?'
         elif None in media['endDate'].values():
@@ -109,6 +113,8 @@ class AnimeManga(commands.Cog):
         embed.add_field(name='Premiered', value=f'{started} to {ended}', inline=True)
         if media['averageScore']:
             embed.add_field(name='Score', value=media['averageScore'], inline=True)
+        if media['episodes']:
+            embed.add_field(name='Episodes', value=media['episodes'], inline=True)
         if media['genres']:
             embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
         if len(linkvalues) > 0:
@@ -190,9 +196,11 @@ class AnimeManga(commands.Cog):
             type = 'rich')
 
         for link in media['externalLinks']:
+            if link == media['externalLinks']:
+                linkvalues = '| '
             site = link['site']
             streamUrl = link['url'].replace('\\', '')
-            linkvalues += f'[{site}]({streamUrl}) '
+            linkvalues += f'[{site}]({streamUrl}) |'
 
         if None in media['startDate'].values():
             started, ended = '?', '?'
@@ -279,6 +287,7 @@ class AnimeManga(commands.Cog):
         try:
             msg = await self.client.wait_for('message', timeout=45.0, check=lambda message: (message.content.split()[0].isnumeric() or message.content.lower() == 'cancel') and message.author == authour)
             if msg.content.lower == 'cancel':
+                await ctx.send('**Search Canceled.**')
                 return
             number = int(msg.content.split()[0]) - 1
             try:
@@ -287,7 +296,7 @@ class AnimeManga(commands.Cog):
                 return await ctx.send('**Error**: Cannot find anime with that number.')
             if name:
                 return await self.anime(ctx, title=name)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             print(f'Animesearch timed out for {authour}')
 
 
@@ -360,7 +369,7 @@ class AnimeManga(commands.Cog):
             name = page[number]['title']['english']
             if name:
                 return await self.manga(ctx, title=name)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             print(f'Animesearch timed out for {authour}')
     
 
@@ -396,6 +405,7 @@ class AnimeManga(commands.Cog):
 
     async def _animeEp(self, ctx, title):
         jikan = Jikan()
+        print('test1')
         name, ep_num = title.split('episode=')
         if not ep_num.isnumeric():
             return await ctx.send("**Error**: `episode=` must be a number!  ")
@@ -412,7 +422,8 @@ class AnimeManga(commands.Cog):
         if not (int(ep_num) % 100 == 0):
             page += 1
         episodes = jikan.anime(mal_id, extension='episodes', page=page)
-        
+
+
         for dictionary in episodes['episodes']:
             if dictionary['episode_id'] == int(ep_num):
                 embed = discord.Embed(
