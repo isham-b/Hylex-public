@@ -1,6 +1,6 @@
 import discord
 import requests
-import asyncio
+from asyncio import TimeoutError
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from jikanpy import Jikan
@@ -287,7 +287,7 @@ class AnimeManga(commands.Cog):
                 return await ctx.send('**Error**: Cannot find anime with that number.')
             if name:
                 return await self.anime(ctx, title=name)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             print(f'Animesearch timed out for {authour}')
 
 
@@ -360,7 +360,7 @@ class AnimeManga(commands.Cog):
             name = page[number]['title']['english']
             if name:
                 return await self.manga(ctx, title=name)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             print(f'Animesearch timed out for {authour}')
     
 
