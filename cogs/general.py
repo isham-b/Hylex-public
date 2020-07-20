@@ -95,8 +95,8 @@ class General(commands.Cog):
                     for x in self.client.cogs:
                         for y in cog:
                             if x.lower() == y.lower():
-                                halp=discord.Embed(title=x+' Command Listing',description=self.client.cogs[x].__doc__)
-                                for c in self.client.get_cog(y).get_commands():
+                                halp=discord.Embed(title=x + ' Command Listing',description=self.client.cogs[x].__doc__)
+                                for c in self.client.get_cog(x).get_commands():
                                     if not c.hidden:
                                         tempname = [c.aliases[0] if c.aliases else c.name][0]
                                         halp.add_field(name=tempname,value=c.help,inline=False)
