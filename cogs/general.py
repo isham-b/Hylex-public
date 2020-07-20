@@ -1,7 +1,7 @@
 import discord
 import random
 from discord.ext import commands
-
+from discord.utils import find
 
 
 class General(commands.Cog):
@@ -33,11 +33,11 @@ class General(commands.Cog):
 
     
     @commands.Cog.listener()
-    async def on_guild_join(self, guild: discord.Guild, ctx):
+    async def on_guild_join(self, guild: discord.Guild):
         print(f'Hylex has joined {guild}!')
-        await ctx.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type -help for command help and syntax.')
-
-
+        general = find(lambda x: x.name == 'general',  guild.text_channels)
+        if general and general.permissions_for(guild.me).send_messages:
+            await general.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type -help for command help and syntax.')
 
 
 
@@ -94,7 +94,7 @@ class General(commands.Cog):
                     found = False
                     for x in self.client.cogs:
                         for y in cog:
-                            if x == y:
+                            if x.lower() == y:
                                 halp=discord.Embed(title=cog[0]+' Command Listing',description=self.client.cogs[cog[0]].__doc__)
                                 for c in self.client.get_cog(y).get_commands():
                                     if not c.hidden:
