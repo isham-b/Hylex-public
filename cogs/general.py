@@ -95,7 +95,7 @@ class General(commands.Cog):
                     for x in self.client.cogs:
                         for y in cog:
                             if x.lower() == y.lower():
-                                halp=discord.Embed(title=cog[0]+' Command Listing',description=self.client.cogs[cog[0]].__doc__)
+                                halp=discord.Embed(title=x+' Command Listing',description=self.client.cogs[x].__doc__)
                                 for c in self.client.get_cog(y).get_commands():
                                     if not c.hidden:
                                         tempname = [c.aliases[0] if c.aliases else c.name][0]
@@ -109,6 +109,7 @@ class General(commands.Cog):
                     await ctx.message.author.send('',embed=halp)
         except:
             await ctx.send("Unable to send embeds.")
+        
 
 
 
