@@ -109,7 +109,8 @@ class General(commands.Cog):
                     await ctx.message.author.send('',embed=halp)
         except:
             await ctx.send("Unable to send embeds.")
-        
+
+
 
     # Errors
     
