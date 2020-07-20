@@ -76,7 +76,7 @@ class General(commands.Cog):
             if not cog:
                 """Cog listing"""
                 halp=discord.Embed(title='Command Help',
-                                description='Use `-help <category>` (Case Sensitive) to find out more about them!\nMessage **LlamaLegacy#2576** for additional help!')
+                                description='Use `-help <category>` to find out more about them!\nMessage **LlamaLegacy#2576** for additional help!')
                 cogs_desc = ''
                 for x in self.client.cogs:
                     if x != 'CommandErrorHandler':
