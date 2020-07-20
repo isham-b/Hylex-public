@@ -94,7 +94,7 @@ class General(commands.Cog):
                     found = False
                     for x in self.client.cogs:
                         for y in cog:
-                            if x.lower() == y:
+                            if x.lower() == y.lower():
                                 halp=discord.Embed(title=cog[0]+' Command Listing',description=self.client.cogs[cog[0]].__doc__)
                                 for c in self.client.get_cog(y).get_commands():
                                     if not c.hidden:
@@ -108,7 +108,7 @@ class General(commands.Cog):
                         await ctx.message.add_reaction(emoji='✉')
                     await ctx.message.author.send('',embed=halp)
         except:
-            await ctx.send("Excuse me, I can't send embeds.")
+            await ctx.send("Unable to send embeds.")
         
 
     # Errors
