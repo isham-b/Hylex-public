@@ -35,7 +35,7 @@ class LoL(commands.Cog):
         splitted = temp[0].split(' / ')
         rank, lp = ' '.join(splitted[1].split()[:2]), ' '.join(splitted[1].split()[2:])
         # Summoner is Unranked/Provisional
-        if len(rank) == 0:
+        if len(rank) == 0 or 'Lv.' in rank:
             rank = 'Unranked'
             wins, losses = '-', '-'
             desc = None
