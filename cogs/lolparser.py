@@ -70,5 +70,15 @@ class LoL(commands.Cog):
 
         await ctx.send(embed=embed)
 
+
+    # Errors
+    @lolrank.error
+    async def lolrank_handler(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Invalid syntax: Use `-lolrank <name> <region>`.")
+
+
+
+
 def setup(client):
     client.add_cog(LoL(client))    
