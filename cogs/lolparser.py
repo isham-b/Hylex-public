@@ -14,6 +14,9 @@ class LoL(commands.Cog):
     @commands.command()
     @commands.guild_only()
     async def lolrank(self, ctx, *, name):
+        """
+        Search for a summoner's ranked stats, including rank, W/L, and more.\nUsage: -lolrank <name> <region>
+        """
         region = name.split()[-1].lower()
         username = ' '.join(name.split()[:-1])
         opggurl = "https://" + region + f".op.gg/summoner/userName={username.replace(' ', '+')}"
