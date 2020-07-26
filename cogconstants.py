@@ -37,3 +37,72 @@ LOLPARSER_RANKICONS = {'Unranked': 'https://vignette.wikia.nocookie.net/leagueof
                        'Challenger': 'https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e3/Season_2019_-_Challenger_4.png/revision/latest?cb=20181229234916'
                        
                        }
+
+
+query_id_anime = '''
+            query ($id: Int) {
+            Media(id: $id, type: ANIME) {
+                title {
+                    english
+                    romaji
+                }
+                siteUrl
+                status
+                episodes
+                coverImage {
+                    large
+                }
+                description
+                startDate {
+                    year
+                    month
+                    day
+                }
+                endDate {
+                    year
+                    month
+                    day
+                }
+                averageScore
+                format
+                genres
+                externalLinks {
+                    site
+                    url
+                }
+                }
+            }
+            '''
+
+query_id_manga = '''
+            query ($id: Int) {
+            Media(id: $id, type: MANGA) {
+                title {
+                    english
+                    romaji
+                }
+                siteUrl
+                status
+                coverImage {
+                    large
+                }
+                description
+                startDate {
+                    year
+                    month
+                    day
+                }
+                endDate {
+                    year
+                    month
+                    day
+                }
+                averageScore
+                genres
+                externalLinks {
+                    site
+                    url
+                }
+                }
+            }
+            '''
