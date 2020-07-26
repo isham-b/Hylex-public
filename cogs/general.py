@@ -20,17 +20,19 @@ class General(commands.Cog):
         await self.client.change_presence(status=discord.Status.online, activity=discord.Game('Bot Stuff | -help'))
         print('We have logged in as {0.user}'.format(self.client))
 
-    
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member, ctx):
-        print(f'{member} has joined the server!')
-        await ctx.send(f'Welcome {member.mention} to the server!')
+
+
+    #@commands.Cog.listener()
+    #async def on_member_join(self, member: discord.Member, ctx):
+    #    print(f'{member} has joined the server!')
+    #    await ctx.send(f'Welcome {member.mention} to the server!')
 
     
-    @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member, ctx):
-        print(f'{member} has left the server.')
-        await ctx.send(f'{member} has left the server.')
+    #@commands.Cog.listener()
+    #async def on_member_remove(self, member: discord.Member, ctx):
+    #    print(f'{member} has left the server.')
+    #    await ctx.send(f'{member} has left the server.')
+
 
     
     @commands.Cog.listener()

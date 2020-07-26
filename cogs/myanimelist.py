@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from discord.ext import commands
 from jikanpy import Jikan
 from datetime import date
+from cogconstants import query_id_anime, query_id_manga
 
 class AnimeManga(commands.Cog):
 
@@ -15,52 +16,56 @@ class AnimeManga(commands.Cog):
     # Commands
     @commands.command()
     @commands.guild_only()
-    async def anime(self, ctx, *, title):
+    async def anime(self, ctx,  *, title, anime_id=None):
         """ Displays info about given anime. Add 'episode=' to search for an episode.\nUsage: -anime <title> (episode=#)
         """
-        if 'season' in title:
-            title = title.replace('season', '')
-
-        if 'episode=' in title:
-            return await self._animeEp(ctx, title)
-        
-
         url = 'https://graphql.anilist.co'
-        variables = {'search': title}
-        query = '''
-            query ($search: String) {
-            Media(search: $search, type: ANIME) {
-                title {
-                    english
-                    romaji
+        if anime_id and not title:
+            variables = {'id': int(anime_id)}
+            query = query_id_anime
+
+        else:
+            if 'season' in title:
+                title = title.replace('season', '')
+
+            if 'episode=' in title:
+                return await self._animeEp(ctx, title)
+
+            variables = {'search': title}
+            query = '''
+                query ($search: String) {
+                Media(search: $search, type: ANIME) {
+                    title {
+                        english
+                        romaji
+                    }
+                    siteUrl
+                    status
+                    episodes
+                    coverImage {
+                        large
+                    }
+                    description
+                    startDate {
+                        year
+                        month
+                        day
+                    }
+                    endDate {
+                        year
+                        month
+                        day
+                    }
+                    averageScore
+                    format
+                    genres
+                    externalLinks {
+                        site
+                        url
+                    }
+                    }
                 }
-                siteUrl
-                status
-                episodes
-                coverImage {
-                    large
-                }
-                description
-                startDate {
-                    year
-                    month
-                    day
-                }
-                endDate {
-                    year
-                    month
-                    day
-                }
-                averageScore
-                format
-                genres
-                externalLinks {
-                    site
-                    url
-                }
-                }
-            }
-            '''
+                '''
         response = requests.post(url, json={'query': query, 'variables': variables})
 
         try:
@@ -119,7 +124,8 @@ class AnimeManga(commands.Cog):
             embed.add_field(name='Episodes', value=tempep, inline=True)
         if media['genres']:
             embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
-        if len(linkvalues) > 0:
+        print(list(linkvalues))
+        if not linkvalues == '|':
             embed.add_field(name='Watch', value=linkvalues)
         embed.set_footer(text='Not the right anime? Use -animesearch <anime> for a list of results.')
 
@@ -130,43 +136,48 @@ class AnimeManga(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    async def manga(self, ctx, *, title):
+    async def manga(self, ctx, *, title, manga_id=None):
         """ Displays info about given manga.\nUsage: -manga <title>
         """
+
         url = 'https://graphql.anilist.co'
-        variables = {'search': title}
-        query = '''
-            query ($search: String) {
-            Media(search: $search, type: MANGA) {
-                title {
-                    english
-                    romaji
+        if manga_id and not title:
+            variables = {'id': int(manga_id)}
+            query = query_id_manga
+        else:
+            variables = {'search': title}
+            query = '''
+                query ($search: String) {
+                Media(search: $search, type: MANGA) {
+                    title {
+                        english
+                        romaji
+                    }
+                    siteUrl
+                    status
+                    coverImage {
+                        large
+                    }
+                    description
+                    startDate {
+                        year
+                        month
+                        day
+                    }
+                    endDate {
+                        year
+                        month
+                        day
+                    }
+                    averageScore
+                    genres
+                    externalLinks {
+                        site
+                        url
+                    }
+                    }
                 }
-                siteUrl
-                status
-                coverImage {
-                    large
-                }
-                description
-                startDate {
-                    year
-                    month
-                    day
-                }
-                endDate {
-                    year
-                    month
-                    day
-                }
-                averageScore
-                genres
-                externalLinks {
-                    site
-                    url
-                }
-                }
-            }
-            '''
+                '''
         response = requests.post(url, json={'query': query, 'variables': variables})
         
         try:
@@ -188,7 +199,7 @@ class AnimeManga(commands.Cog):
         mangaTitle = media['title']['english']
         if not mangaTitle:
             mangaTitle = media['title']['romaji']
-
+        
 
         embed = discord.Embed(
             title = mangaTitle,
@@ -219,7 +230,7 @@ class AnimeManga(commands.Cog):
             embed.add_field(name='Score', value=media['averageScore'], inline=True)
         if media['genres']:
             embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
-        if len(linkvalues) > 0:
+        if linkvalues != '|':
             embed.add_field(name='Links', value=linkvalues)
         embed.set_footer(text='Not the right manga? Use -mangasearch <manga> for a list of results.')
 
@@ -262,11 +273,11 @@ class AnimeManga(commands.Cog):
             replaced = decoded.replace('null', 'None')
             full_dict = eval(replaced)
         except:
-            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to use the correct English/Romaji title.')
+            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to spell everything correctly (Ex: use "season 2" instead of "s2").')
 
         page = full_dict['data']['Page']['media']
         if len(page) == 0:
-            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to use the correct English/Romaji title.')
+            return await ctx.send(f'**Error**: No results found for "{title}". Make sure to spell everything correctly (Ex: use "season 2" instead of "s2").')
 
         i = 1
         for entry in page:
@@ -291,10 +302,14 @@ class AnimeManga(commands.Cog):
             number = int(msg.content.split()[0]) - 1
             try:
                 name = page[number]['title']['english']
+                tempid = page[number]['id']
             except KeyError:
                 return await ctx.send('**Error**: Cannot find anime with that number.')
+            if not name:
+                name = page[number]['title']['romaji']
             if name:
-                return await self.anime(ctx, title=name)
+                print('f')
+                return await self.anime(ctx, title=None, anime_id=tempid)
         except TimeoutError:
             print(f'Animesearch timed out for {authour}')
 
@@ -365,11 +380,17 @@ class AnimeManga(commands.Cog):
             if msg.content.lower == 'cancel':
                 return
             number = int(msg.content.split()[0]) - 1
-            name = page[number]['title']['english']
+            try:
+                name = page[number]['title']['english']
+                tempid = page[number]['id']
+            except KeyError:
+                return await ctx.send('**Error**: Cannot find manga with that number.')
+            if not name:
+                name = page[number]['title']['romaji']
             if name:
-                return await self.manga(ctx, title=name)
+                return await self.manga(ctx, title=None, manga_id=tempid)
         except TimeoutError:
-            print(f'Animesearch timed out for {authour}')
+            print(f'Mangasearch timed out for {authour}')
     
 
 
@@ -407,10 +428,14 @@ class AnimeManga(commands.Cog):
         name, ep_num = title.split('episode=')
         if not ep_num.isnumeric():
             return await ctx.send("**Error**: `episode=` must be a number!  ")
-        result = jikan.search(search_type='anime', query=name)['results'][0]
+        try:
+            result = jikan.search(search_type='anime', query=name)['results'][0]
+        except:
+            return await ctx.send('Episode search is unavailable for now :( Please try again later.')
         mal_id = result['mal_id']
         anime_title = result['title']
         authour = ctx.message.author
+        
         
 
         if int(self._num_episodes(mal_id)) < int(ep_num):
