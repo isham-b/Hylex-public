@@ -39,11 +39,11 @@ class General(commands.Cog):
     async def on_guild_join(self, guild: discord.Guild):
         general = find(lambda x: x.name == 'general',  guild.text_channels)
         if general and general.permissions_for(guild.me).send_messages:
-            await general.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type -help for command help and syntax.')
+            await general.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type `-help` for command help and syntax.')
         else:
             for channel in guild.text_channels:
                 if channel.permissions_for(guild.me).send_messages:
-                    await channel.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type -help for command help and syntax.')
+                    await channel.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type `-help` for command help and syntax.')
                     break
         with open('servers.txt', 'a') as servers:
             servers.write(f'Hylex has joined server "{guild.name}"\n')
