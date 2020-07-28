@@ -45,9 +45,13 @@ class General(commands.Cog):
                 if channel.permissions_for(guild.me).send_messages:
                     await channel.send('Hello! Hylex uses Dashes "`-`" as command prefixes, type -help for command help and syntax.')
                     break
-        with open('servers.txt', 'a') as servers:
-            if guild.name not in servers:
-                servers.write(f'Hylex has joined server "{guild.name}"\n')
+        temp = open('servers.txt', 'r')
+        servers_list = temp.readlines()
+        temp.close()
+        if guild.name not in servers_list or guild.name + '\n' not in servers_list:
+            with open('servers.txt', 'a') as f:
+                f.write(f'Hylex has joined server "{guild.name}"\n')
+
 
 
     # Commands
