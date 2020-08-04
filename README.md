@@ -27,5 +27,6 @@ Multipurpose Discord Bot
 <p>And much more!</p>
 
 <h1>How do I use Hylex?</h1>
+<p>Add Hylex to your server: https://discord.com/oauth2/authorize?client_id=719717247748145163&scope=bot&permissions=515136 </p>
 <p>Hylex uses dashes "-" as a prefix for all of the commands. Use -help for command help!</p>
 <p>For additional help, contact LlamaLegacy#2576 on Discord.</p>
