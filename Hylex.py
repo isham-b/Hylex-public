@@ -24,6 +24,16 @@ async def unload(ctx, extension):
 async def reload(ctx, extension):
     client.unload_extension(f'cogs.{extension}')
     client.load_extension(f'cogs.{extension}')
+
+
+
+
+@client.command()
+@commands.is_owner()
+async def servers(ctx):
+    await ctx.send(client.guilds)
+
+
     
 
 
