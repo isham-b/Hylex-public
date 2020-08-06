@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from discord.ext import commands
 from jikanpy import Jikan
 from datetime import date
-from cogconstants import query_id_anime, query_id_manga, seasons
+from cogconstants import query_id_anime, query_id_manga
 
 class AnimeManga(commands.Cog):
 
