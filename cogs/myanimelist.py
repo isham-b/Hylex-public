@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from discord.ext import commands
 from jikanpy import Jikan
 from datetime import date
-from cogconstants import query_id_anime, query_id_manga
+from cogconstants import query_id_anime, query_id_manga, seasons
 
 class AnimeManga(commands.Cog):
 
@@ -20,16 +20,20 @@ class AnimeManga(commands.Cog):
         """ Displays info about given anime. Add 'episode=' to search for an episode.\nUsage: -anime <title> (episode=#)
         """
         url = 'https://graphql.anilist.co'
+        searchforep = False
         if anime_id and not title:
             variables = {'id': int(anime_id)}
             query = query_id_anime
 
         else:
-            if 'season' in title:
-                title = title.replace('season', '')
+            splitted = title.split()
+            for number in range(1, 10):
+                if 's' + str(number) in splitted:
+                    title = title.replace('s' + str(number), 'season ' + str(number))
 
             if 'episode=' in title:
-                return await self._animeEp(ctx, title)
+                title, ep_num = title.split(' episode=')
+                searchforep = True
 
             variables = {'search': title}
             query = '''
@@ -40,6 +44,7 @@ class AnimeManga(commands.Cog):
                         romaji
                     }
                     siteUrl
+                    idMal
                     status
                     episodes
                     coverImage {
@@ -72,14 +77,21 @@ class AnimeManga(commands.Cog):
             decoded = response.content.decode('utf-8')
             replaced = decoded.replace('null', 'None')
             full_dict = eval(replaced)
+            media = full_dict['data']['Media']
         except:
             return await ctx.send(f'**Error**: No results found for "{title}", try using `-animesearch <title>` for a list of results.')
 
         if 'errors' in full_dict:
             return await ctx.send(f'**Error**: No results found for "{title}", try using `-animesearch <title>` for a list of results.')
 
+        if searchforep:
+            mal_id = media['idMal']
+            return await self._animeEp(ctx, ep_num, mal_id)
+
+
+
+
         linkvalues, authour = '| ', ctx.message.author
-        media = full_dict['data']['Media']
         desc, tempep = 'No description available.', None
         if media['description']:
             tempdesc = BeautifulSoup(media['description'], features="html.parser")
@@ -124,7 +136,6 @@ class AnimeManga(commands.Cog):
             embed.add_field(name='Episodes', value=tempep, inline=True)
         if media['genres']:
             embed.add_field(name='Genres', value=', '.join(media['genres']), inline=False)
-        print(list(linkvalues))
         if not linkvalues == '|':
             embed.add_field(name='Watch', value=linkvalues)
         embed.set_footer(text='Not the right anime? Use -animesearch <anime> for a list of results.')
@@ -423,16 +434,14 @@ class AnimeManga(commands.Cog):
 
 
 
-    async def _animeEp(self, ctx, title):
+    async def _animeEp(self, ctx, ep_num, mal_id):
         jikan = Jikan()
-        name, ep_num = title.split('episode=')
         if not ep_num.isnumeric():
             return await ctx.send("**Error**: `episode=` must be a number!  ")
         try:
-            result = jikan.search(search_type='anime', query=name)['results'][0]
+            result = jikan.anime(mal_id)
         except:
             return await ctx.send('Episode search is unavailable for now :( Please try again later.')
-        mal_id = result['mal_id']
         anime_title = result['title']
         authour = ctx.message.author
         
@@ -466,7 +475,7 @@ class AnimeManga(commands.Cog):
                 embed.set_author(name='Episode Search', url="https://github.com/isham-b/Hylex", icon_url=authour.avatar_url)
                 embed.set_thumbnail(url=result['image_url'])
                 embed.add_field(name='Premiered', value=premiere, inline=True)
-                embed.add_field(name='Filler', value=filler)
+                embed.add_field(name='Fillerr', value=filler)
                 
                 return await ctx.send(embed=embed)
 
