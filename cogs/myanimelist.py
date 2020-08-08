@@ -475,7 +475,7 @@ class AnimeManga(commands.Cog):
                 embed.set_author(name='Episode Search', url="https://github.com/isham-b/Hylex", icon_url=authour.avatar_url)
                 embed.set_thumbnail(url=result['image_url'])
                 embed.add_field(name='Premiered', value=premiere, inline=True)
-                embed.add_field(name='Fillerr', value=filler)
+                embed.add_field(name='Filler', value=filler)
                 
                 return await ctx.send(embed=embed)
 
