@@ -88,7 +88,9 @@ class AnimeManga(commands.Cog):
 
         if searchforep:
             mal_id = media['idMal']
-            return await self._animeEp(ctx, ep_num, mal_id)
+            if not mal_id:
+                return await ctx.send(f'**Error**: No episodes found for "{title}". Make sure your spelling is correct.')
+            return await self._animeEp(ctx, ep_num, mal_id=mal_id)
 
 
 
@@ -441,10 +443,9 @@ class AnimeManga(commands.Cog):
         if not ep_num.isnumeric():
             return await ctx.send("**Error**: `episode=` must be a number!  ")
         try:
-            result = jikan.anime(mal_id)
-        except Exception as e:
-            print(e)
-            # return await ctx.send('Episode search is unavailable for now :( Please try again later.')
+            result = jikan.anime(int(mal_id))
+        except:
+            return await ctx.send('Episode search is unavailable for now :( Please try again later.')
         anime_title = result['title']
         authour = ctx.message.author
         
