@@ -442,8 +442,9 @@ class AnimeManga(commands.Cog):
             return await ctx.send("**Error**: `episode=` must be a number!  ")
         try:
             result = jikan.anime(mal_id)
-        except:
-            return await ctx.send('Episode search is unavailable for now :( Please try again later.')
+        except Exception as e:
+            print(e)
+            # return await ctx.send('Episode search is unavailable for now :( Please try again later.')
         anime_title = result['title']
         authour = ctx.message.author
         
