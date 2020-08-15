@@ -27,6 +27,8 @@ class AnimeManga(commands.Cog):
 
         else:
             splitted = title.split()
+
+            # Check for season input
             for number in range(1, 10):
                 if 's' + str(number) in splitted:
                     title = title.replace('s' + str(number), 'season ' + str(number))
