@@ -31,8 +31,14 @@ async def reload(ctx, extension):
 @client.command()
 @commands.is_owner()
 async def servers(ctx):
-    await ctx.send(client.guilds)
-
+    server_list = list(client.guilds)
+    await ctx.send(f'Connected to {str(len(server_list))} servers:')
+    finalstr = ''
+    for server in server_list:
+        total_members = str(len(server.members))
+        server_name = server.name
+        finalstr += f'{server_name} ({total_members})\n'
+    await ctx.send(finalstr)
 
     
 
