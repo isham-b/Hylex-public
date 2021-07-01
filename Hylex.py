@@ -49,4 +49,4 @@ for filename in os.listdir('./cogs'):
 
 
 
-client.run('NzE5NzE3MjQ3NzQ4MTQ1MTYz.Xt7e6w.cDpfxK2wpHQh0Uv1V9VvS6FGoh8')
+client.run('PLACE BOT TOKEN HERE')
